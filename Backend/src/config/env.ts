@@ -2,22 +2,44 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const MONGO_URI = process.env.MONGO_URI;
+const requiredEnv = (name: string): string => {
+  const value = process.env[name];
 
-if (!MONGO_URI) {
-  throw new Error("MONGO_URI is not defined in .env");
-}
+  if (!value) {
+    throw new Error(`${name} is not defined in .env`);
+  }
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined in .env");
-}
+  return value;
+};
 
 const config = {
+  NODE_ENV: process.env.NODE_ENV || "development",
+
   PORT: Number(process.env.PORT) || 3000,
-  MONGO_URI,
-  JWT_SECRET,
+
+  MONGO_URI: requiredEnv("MONGO_URI"),
+
+  SALT_ROUNDS: Number(requiredEnv("SALT_ROUNDS")),
+
+  REDIS_URL: process.env.REDIS_URL || "redis://localhost:6379",
+
+  JWT_ACCESS_TOKEN_SECRET:
+    requiredEnv("JWT_ACCESS_TOKEN_SECRET"),
+
+  JWT_REFRESH_TOKEN_SECRET:
+    requiredEnv("JWT_REFRESH_TOKEN_SECRET"),
+
+  JWT_ACCESS_EXPIRY:
+    process.env.JWT_ACCESS_EXPIRY || "15m",
+
+  JWT_REFRESH_EXPIRY:
+    process.env.JWT_REFRESH_EXPIRY || "7d",
+
+  CLIENT_URL:
+    process.env.CLIENT_URL || "http://localhost:5173",
+
+  LOG_LEVEL:
+    process.env.LOG_LEVEL || "info",
 };
 
 export default config;
