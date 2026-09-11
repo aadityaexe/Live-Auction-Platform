@@ -9,6 +9,12 @@ const userSchema = new mongoose.Schema(
     walletAddress: { type: String, unique: true },
     profilePicture: { type: String, default: null },
     bio: { type: String, default: null },
+    isVerified: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
+    lastLogin: { type: Date, default: null },
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: { type: Date, default: null },
+    createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
