@@ -1,127 +1,134 @@
-
 import { Request, Response } from "express";
-import { User } from "../models/User.js";
 
-export const registerUser = async (req: Request, res: Response) => {
-  try {
-    const { username, email, password } = req.body;
-    console.log("Register request body:", req.body);
+import * as authService from "../services/";
 
-    if (!username || !email || !password) {
-      return res.status(400).json({
-        message: "Username, email and password are required",
-      });
-    }
+import {
+  setRefreshTokenCookie,
+  clearRefreshTokenCookie,
+} from "../utils/cookies.js";
 
-    const existingUser = await User.findOne({
-      $or: [{ email }, { username }],
-    });
+import { AppError } from "../errors/AppError.js";
 
-    if (existingUser) {
-      return res.status(400).json({
-        message: "User with this email or username already exists",
-      });
-    }
 
-    const user = await User.create({
-      username,
-      email,
-      password,
-    });
+// ===============================
+// REGISTER
+// ===============================
+export const registerUser = async (
+  req: Request,
+  res: Response
+) => {
+  const {
+    username,
+    email,
+    password,
+  } = req.body;
 
-    return res.status(201).json({
-      message: "User registered successfully",
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-      },
-    });
-  } catch (error) {
-    console.error("Register error:", error);
+  const result = await authService.register(
+    username,
+    email,
+    password
+  );
 
-    return res.status(500).json({
-      message: "Internal server error",
-    });
-  }
+  // Store refresh token in HttpOnly cookie
+  setRefreshTokenCookie(
+    res,
+    result.refreshToken
+  );
+
+  return res.status(201).json({
+    message: "User registered successfully",
+
+    user: {
+      id: result.user._id,
+      username: result.user.username,
+      email: result.user.email,
+      lastLogin: result.user.lastLogin,
+    },
+
+    // Only send access token
+    accessToken: result.accessToken,
+  });
 };
 
-export const loginUser = async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({
-        message: "Email and password are required",
-      });
-    }
+// ===============================
+// LOGIN
+// ===============================
+export const loginUser = async (
+  req: Request,
+  res: Response
+) => {
+  const {
+    email,
+    password,
+  } = req.body;
 
-    const user = await User.findOne({ email });
+  const result = await authService.login(
+    email,
+    password
+  );
 
-    if (!user) {
-      return res.status(401).json({
-        message: "Invalid email or password",
-      });
-    }
+  // Store refresh token in HttpOnly cookie
+  setRefreshTokenCookie(
+    res,
+    result.refreshToken
+  );
 
-    if (user.password !== password) {
-      return res.status(401).json({
-        message: "Invalid email or password",
-      });
-    }
+  return res.status(200).json({
+    message: "Login successful",
 
-    return res.status(200).json({
-      message: "Login successful",
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-      },
-    });
-  } catch (error) {
-    console.error("Login error:", error);
+    user: {
+      id: result.user._id,
+      username: result.user.username,
+      email: result.user.email,
+      lastLogin: result.user.lastLogin,
+      isVerified: result.user.isVerified,
+      isActive: result.user.isActive,
+    },
 
-    return res.status(500).json({
-      message: "Internal server error",
-    });
-  }
+    // Access token goes to frontend
+    accessToken: result.accessToken,
+  });
 };
 
-export const getUserById = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
 
-    const user = await User.findById(id).select("-password");
+// ===============================
+// REFRESH ACCESS TOKEN
+// ===============================
+export const refreshToken = async (
+  req: Request,
+  res: Response
+) => {
+  const token = req.cookies?.refreshToken;
 
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
-    }
-
-    return res.status(200).json({
-      user,
-    });
-  } catch (error) {
-    console.error("Get user error:", error);
-
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+  if (!token) {
+    throw new AppError(
+      "Refresh token is required",
+      401,
+      "REFRESH_TOKEN_REQUIRED"
+    );
   }
+
+  const accessToken =
+    await authService.refreshAccessToken(token);
+
+  return res.status(200).json({
+    accessToken,
+  });
 };
 
-export const allUsers = async (req: Request, res: Response) => {
-  try {
-    const users = await User.find().select("-password");
-    return res.status(200).json({
-      users,
-    });
-  } catch (error) {
-    console.error("Get all users error:", error);
 
-    return res.status(500).json({
-      message: "Internal server error",
-    });
-  }
+// ===============================
+// LOGOUT
+// ===============================
+export const logoutUser = (
+  req: Request,
+  res: Response
+) => {
+
+  clearRefreshTokenCookie(res);
+
+  return res.status(200).json({
+    message: "Logout successful",
+  });
 };
