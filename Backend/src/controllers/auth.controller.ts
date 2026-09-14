@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-import * as authService from "../services/";
+import * as authService from "../services/auth.service.js";
 
 import {
   setRefreshTokenCookie,

@@ -19,15 +19,15 @@ const config = {
 
   MONGO_URI: requiredEnv("MONGO_URI"),
 
-  SALT_ROUNDS: Number(requiredEnv("SALT_ROUNDS")),
+  SALT_ROUNDS: Number(process.env.SALT_ROUNDS || 10),
 
   REDIS_URL: process.env.REDIS_URL || "redis://localhost:6379",
 
   JWT_ACCESS_TOKEN_SECRET:
-    requiredEnv("JWT_ACCESS_TOKEN_SECRET"),
+    process.env.JWT_ACCESS_TOKEN_SECRET || requiredEnv("JWT_SECRET"),
 
   JWT_REFRESH_TOKEN_SECRET:
-    requiredEnv("JWT_REFRESH_TOKEN_SECRET"),
+    process.env.JWT_REFRESH_TOKEN_SECRET || requiredEnv("JWT_REFRESH_SECRET"),
 
   JWT_ACCESS_EXPIRY:
     process.env.JWT_ACCESS_EXPIRY || "15m",

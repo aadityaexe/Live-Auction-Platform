@@ -26,8 +26,7 @@ app.use("/api/auth", authRoutes);
 app.use((req: Request, res: Response, next: NextFunction) => {
   next(
     new AppError(
-      `Route ${req.origina
-      lUrl} not found`,
+      `Route ${req.originalUrl} not found`,
       404,
       "NOT_FOUND"
     )
