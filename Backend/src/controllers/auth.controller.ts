@@ -12,7 +12,6 @@ import { AppError } from "../errors/AppError.js";
 
 // ===============================
 // REGISTER
-// ===============================
 export const registerUser = async (
   req: Request,
   res: Response
