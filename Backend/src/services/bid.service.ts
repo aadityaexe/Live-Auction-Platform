@@ -42,6 +42,7 @@ export const createBidService = async (
       `Bid amount must be at least ${minimumRequiredBid}`,
       400,
       "BAD_REQUEST"
+
     );
   }
 
