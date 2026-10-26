@@ -17,6 +17,9 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    allowedHosts: true,
+  },
   plugins: [
     tailwindcss(),
     react(),
