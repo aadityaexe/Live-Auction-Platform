@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { initializeAuth, clearAuth } from './store/authSlice';
 import { setOnUnauthorized } from './services/api/client';
-import { connectSocket, joinUserRoom, onNotification } from './services/socket/socket.service';
+import { connectSocket, disconnectSocket, joinUserRoom, onNotification } from './services/socket/socket.service';
 import { addNotification } from './store/notificationSlice';
 import type { Notification } from './types';
 
@@ -60,7 +60,11 @@ const AppShell = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      disconnectSocket();
+      return;
+    }
+
     const socket = connectSocket();
     
     const joinUser = () => joinUserRoom(user.id);
@@ -74,6 +78,7 @@ const AppShell = () => {
     return () => {
       cleanNotif();
       socket.off('connect', joinUser);
+      disconnectSocket();
     };
   }, [user, dispatch]);
 

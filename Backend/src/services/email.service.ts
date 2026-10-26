@@ -22,6 +22,9 @@ const getTransporter = (): Transporter => {
         user: config.SMTP_USER,
         pass: config.SMTP_PASSWORD,
       },
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 10000,
     });
     logger.info("SMTP transporter ready: " + config.SMTP_HOST + ":" + config.SMTP_PORT);
   } else {
