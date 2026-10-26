@@ -1,5 +1,17 @@
 import mongoose, { Document, Schema } from "mongoose";
 
+export type AuctionStatus =
+  | "DRAFT"
+  | "SCHEDULED"
+  | "LIVE"
+  | "ENDING"
+  | "ENDED"
+  | "CANCELLED"
+  | "PAYMENT_PENDING"
+  | "PAYMENT_COMPLETED"
+  | "FULFILLED"
+  | "DISPUTED";
+
 export interface IAuction extends Document {
   sellerId: mongoose.Types.ObjectId;
   title: string;
@@ -15,13 +27,7 @@ export interface IAuction extends Document {
   startTime: Date;
   endTime: Date;
 
-  status:
-  | "DRAFT"
-  | "SCHEDULED"
-  | "LIVE"
-  | "ENDING"
-  | "ENDED"
-  | "CANCELLED";
+  status: AuctionStatus;
 
   highestBidderId?: mongoose.Types.ObjectId;
   winnerId?: mongoose.Types.ObjectId;
@@ -69,12 +75,13 @@ const auctionSchema = new Schema<IAuction>(
     categoryId: {
       type: Schema.Types.ObjectId,
       ref: "Category",
+      index: true,
     },
 
     startingPrice: {
       type: Number,
       required: true,
-      min: 0,
+      min: 1,
     },
 
     currentPrice: {
@@ -97,11 +104,13 @@ const auctionSchema = new Schema<IAuction>(
     startTime: {
       type: Date,
       required: true,
+      index: true,
     },
 
     endTime: {
       type: Date,
       required: true,
+      index: true,
     },
 
     status: {
@@ -113,50 +122,23 @@ const auctionSchema = new Schema<IAuction>(
         "ENDING",
         "ENDED",
         "CANCELLED",
+        "PAYMENT_PENDING",
+        "PAYMENT_COMPLETED",
+        "FULFILLED",
+        "DISPUTED",
       ],
       default: "SCHEDULED",
       index: true,
     },
 
-    highestBidderId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
-
-    winnerId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-    },
-
-    bidCount: {
-      type: Number,
-      default: 0,
-    },
-
-    viewCount: {
-      type: Number,
-      default: 0,
-    },
-
-    watchCount: {
-      type: Number,
-      default: 0,
-    },
-
-    version: {
-      type: Number,
-      default: 1,
-    },
-
-    extensionCount: {
-      type: Number,
-      default: 0,
-    },
-
-    maxExtensionSeconds: {
-      type: Number,
-      default: 300,
-    },
+    highestBidderId: { type: Schema.Types.ObjectId, ref: "User" },
+    winnerId: { type: Schema.Types.ObjectId, ref: "User" },
+    bidCount: { type: Number, default: 0, min: 0 },
+    viewCount: { type: Number, default: 0, min: 0 },
+    watchCount: { type: Number, default: 0, min: 0 },
+    version: { type: Number, default: 1, min: 1 },
+    extensionCount: { type: Number, default: 0, min: 0 },
+    maxExtensionSeconds: { type: Number, default: 300, min: 0 },
   },
   {
     timestamps: true,
@@ -166,5 +148,6 @@ const auctionSchema = new Schema<IAuction>(
 auctionSchema.index({ status: 1, endTime: 1 });
 auctionSchema.index({ status: 1, startTime: 1 });
 auctionSchema.index({ sellerId: 1, createdAt: -1 });
+auctionSchema.index({ status: 1, categoryId: 1, createdAt: -1 });
 
 export default mongoose.model<IAuction>("Auction", auctionSchema);

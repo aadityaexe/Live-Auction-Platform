@@ -1,15 +1,15 @@
 import mongoose from "mongoose";
 import config from "./env.js";
+import { logger } from "../logger/logger.js";
 
-export const connectDB = async () => {
+export const connectDB = async (): Promise<void> => {
   try {
-    console.log("config.MONGO_URI:", config.MONGO_URI);
-
     await mongoose.connect(config.MONGO_URI);
-
-    console.log("Connected to MongoDB");
+    logger.info("Connected to MongoDB");
   } catch (error) {
-    console.error("Error connecting to MongoDB:", error);
+    logger.error("Failed to connect to MongoDB", {
+      error: error instanceof Error ? error.message : String(error),
+    });
     process.exit(1);
   }
 };

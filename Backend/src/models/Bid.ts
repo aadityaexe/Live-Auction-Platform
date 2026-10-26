@@ -61,9 +61,7 @@ const bidSchema = new Schema<IBid>(
   }
 );
 
-// Prevent duplicate requests
 bidSchema.index({ auctionId: 1, bidderId: 1, requestId: 1 }, { unique: true });
-// For fetching bid history of an auction ordered by sequence
 bidSchema.index({ auctionId: 1, sequenceNumber: -1 });
 
 export default mongoose.model<IBid>("Bid", bidSchema);
