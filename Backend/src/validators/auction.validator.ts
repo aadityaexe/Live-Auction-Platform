@@ -11,7 +11,7 @@ export const createAuctionSchema = z
       .string()
       .min(10, "Description must be at least 10 characters"),
 
-    images: z.array(z.string()).optional(),
+    images: z.array(z.string().url("Each image must be a valid URL")).optional(),
 
     categoryId: z.string().optional(),
 
@@ -32,8 +32,6 @@ export const createAuctionSchema = z
 
     endTime: z.coerce.date(),
   })
-
-  // End time must be after start time
   .refine(
     (data) => data.endTime > data.startTime,
     {
@@ -41,20 +39,61 @@ export const createAuctionSchema = z
       path: ["endTime"],
     }
   )
-
-  // Reserve price cannot be lower than starting price
   .refine(
     (data) =>
       !data.reservePrice ||
       data.reservePrice >= data.startingPrice,
     {
-      message:
-        "Reserve price cannot be lower than starting price",
+      message: "Reserve price cannot be lower than starting price",
       path: ["reservePrice"],
     }
   );
 
+export const updateAuctionSchema = z
+  .object({
+    title: z
+      .string()
+      .min(3, "Title must be at least 3 characters")
+      .max(150, "Title cannot exceed 150 characters")
+      .optional(),
 
-// For updating an auction
-export const updateAuctionSchema =
-  createAuctionSchema.partial();
+    description: z
+      .string()
+      .min(10, "Description must be at least 10 characters")
+      .optional(),
+
+    images: z.array(z.string().url("Each image must be a valid URL")).optional(),
+
+    categoryId: z.string().optional(),
+
+    startingPrice: z
+      .number()
+      .positive("Starting price must be greater than 0")
+      .optional(),
+
+    minimumIncrement: z
+      .number()
+      .positive("Minimum increment must be greater than 0")
+      .optional(),
+
+    reservePrice: z
+      .number()
+      .positive("Reserve price must be greater than 0")
+      .optional(),
+
+    startTime: z.coerce.date().optional(),
+
+    endTime: z.coerce.date().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.startTime && data.endTime) {
+        return data.endTime > data.startTime;
+      }
+      return true;
+    },
+    {
+      message: "End time must be after start time",
+      path: ["endTime"],
+    }
+  );

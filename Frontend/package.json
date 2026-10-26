@@ -1,19 +1,33 @@
 {
-  "name": "frontend",
+  "name": "live-auction-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Frontend for real-time live auction platform",
+  "author": "Aditya",
+  "license": "MIT",
+  "keywords": [
+    "auction",
+    "react",
+    "redux",
+    "socket-io",
+    "tailwindcss"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "lint": "eslint ."
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.13.0",
     "@tailwindcss/vite": "^4.3.3",
+    "axios": "^1.20.0",
+    "axios-retry": "^4.5.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-redux": "^9.3.0",
     "react-router-dom": "^7.18.3",
+    "socket.io-client": "^4.8.4",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
