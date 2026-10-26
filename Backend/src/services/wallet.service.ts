@@ -5,11 +5,12 @@ import Wallet from "../models/Wallet.js";
 import WalletTransaction from "../models/WalletTransaction.js";
 import { AppError } from "../errors/AppError.js";
 import { ERROR_CODES } from "../errors/errorCodes.js";
+import { logger } from "../logger/logger.js";
 import config from "../config/env.js";
 
 const razorpay = new Razorpay({
-  key_id: config.RAZORPAY_KEY_ID,
-  key_secret: config.RAZORPAY_KEY_SECRET,
+  key_id: config.RAZORPAY_KEY_ID || "dummy",
+  key_secret: config.RAZORPAY_KEY_SECRET || "dummy",
 });
 
 export const getWallet = async (userId: string) => {
@@ -156,17 +157,33 @@ export const initiateDeposit = async (userId: string, amount: number) => {
     throw new AppError("Deposit amount must be greater than 0", 400, ERROR_CODES.BAD_REQUEST);
   }
 
+  if (!config.RAZORPAY_KEY_ID || !config.RAZORPAY_KEY_SECRET || config.RAZORPAY_KEY_ID.includes("YourKeyIdHere")) {
+    throw new AppError(
+      "Razorpay credentials are not configured on the server. Please set valid RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables.",
+      500,
+      ERROR_CODES.INTERNAL_SERVER_ERROR
+    );
+  }
+
   const amountInPaise = Math.round(amount * 100);
   const receipt = `dep_${userId.slice(-6)}_${Date.now()}`;
 
-  const rzpOrder = await razorpay.orders.create({
-    amount: amountInPaise,
-    currency: "INR",
-    receipt,
-  });
+  let rzpOrderId: string;
+  try {
+    const rzpOrder = await razorpay.orders.create({
+      amount: amountInPaise,
+      currency: "INR",
+      receipt,
+    });
+    rzpOrderId = rzpOrder.id;
+  } catch (err: any) {
+    logger.error("Razorpay order creation failed:", { error: err?.error || err?.message || String(err) });
+    const message = err?.error?.description || err?.message || "Failed to create payment order with Razorpay";
+    throw new AppError(message, 502, ERROR_CODES.BAD_REQUEST);
+  }
 
   return {
-    providerOrderId: rzpOrder.id,
+    providerOrderId: rzpOrderId,
     amount,
     currency: "INR",
     keyId: config.RAZORPAY_KEY_ID,
