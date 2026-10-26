@@ -6,6 +6,8 @@ import { logger } from "../logger/logger.js";
 import config from "../config/env.js";
 import { verifyAccessToken } from "../utils/jwt.js";
 
+import { isOriginAllowed } from "../config/cors.js";
+
 let io: Server;
 
 const rateLimits = new Map<string, number>();
@@ -14,7 +16,12 @@ const RATE_LIMIT_MS = 100;
 export const initializeSocket = (server: HttpServer) => {
   io = new Server(server, {
     cors: {
-      origin: config.CLIENT_URL,
+      origin: (origin, callback) => {
+        if (isOriginAllowed(origin)) {
+          return callback(null, true);
+        }
+        callback(new Error(`CORS: origin ${origin} not allowed`));
+      },
       methods: ["GET", "POST"],
       credentials: true,
     },

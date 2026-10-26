@@ -50,7 +50,7 @@ app.use(helmet({
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://images.unsplash.com", "https://plus.unsplash.com"],
-      connectSrc: ["'self'", config.CLIENT_URL],
+      connectSrc: ["'self'", config.CLIENT_URL, "https://*.onrender.com", "wss://*.onrender.com"],
     }
   },
   crossOriginEmbedderPolicy: false,
